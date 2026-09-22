@@ -6,7 +6,7 @@
   "license": "Apache-2.0",
   "repository": "github:eralabs-ai/jev-dom",
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "files": [
     "src/",

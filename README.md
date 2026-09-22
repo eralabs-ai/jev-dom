@@ -27,8 +27,9 @@ surface still moves:
 npm i github:eralabs-ai/jev-dom#<commit-sha>
 ```
 
-Node 20 or newer. `playwright` is a peer of your own choosing: this package never imports it,
-so you supply the browser and hand it a page.
+Node 22 or newer — `jev-webmcp`, the one runtime dependency, sets that floor. `playwright` is a
+peer of your own choosing: this package never imports it, so you supply the browser and hand it a
+page.
 
 ### Use from your own Playwright page
 

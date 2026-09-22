@@ -6,6 +6,10 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 const manifest = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
+const lockfile = JSON.parse(readFileSync(new URL("../package-lock.json", import.meta.url), "utf8"));
+
+/** The major from a ">=22" style floor, which is all any engines field here uses. */
+const floorOf = (range) => Number(/>=\s*(\d+)/.exec(range ?? "")?.[1] ?? 0);
 
 const SURFACE = {
   "jev-dom/agent": ["STOPS", "STABLE", "EARLY", "fingerprint", "runRequest"],
@@ -40,4 +44,15 @@ test("every subpath ships its types, and `files` carries them", () => {
 test("the engine takes no runtime dependency on the browser or the LLM SDK", () => {
   assert.deepEqual(Object.keys(manifest.dependencies), ["jev-webmcp"]);
   for (const devOnly of ["playwright", "@anthropic-ai/sdk"]) assert.ok(devOnly in manifest.devDependencies, `${devOnly} should be a devDependency`);
+});
+
+test("the declared node floor is no lower than any runtime dependency's", () => {
+  // A consumer installs those dependencies too, so promising less than they ask
+  // for is a promise this package cannot keep. `jev-webmcp` wants Node 22.
+  const ours = floorOf(manifest.engines.node);
+  assert.ok(ours > 0, `engines.node "${manifest.engines.node}" declares no floor`);
+  for (const name of Object.keys(manifest.dependencies)) {
+    const theirs = floorOf(lockfile.packages[`node_modules/${name}`]?.engines?.node);
+    assert.ok(ours >= theirs, `engines.node is >=${ours}, but ${name} needs >=${theirs}`);
+  }
 });
