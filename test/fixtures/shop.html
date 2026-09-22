@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Fixture Shop</title>
+  <style>
+    body { font: 14px system-ui; margin: 0; }
+    .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    .far { margin-top: 1800px; }
+    .gone { display: none; }
+  </style>
+</head>
+<body>
+  <header>
+    <form role="search" id="search-form">
+      <label for="q" class="visually-hidden">Search the shop</label>
+      <input id="q" type="search" name="q" placeholder="Search…" />
+    </form>
+    <button id="cart" aria-label="Open cart: 0 items">🛒 <span id="count">0</span></button>
+    <input type="password" id="pw" aria-label="Password" />
+    <input type="hidden" id="secret" value="x" />
+  </header>
+
+  <main>
+    <div role="group" aria-label="Dietary filters">
+      <button class="chip" aria-pressed="false" id="vegan">vegan</button>
+      <button class="chip" aria-pressed="true" id="organic">organic</button>
+    </div>
+    <label>Sort by
+      <select id="sort">
+        <option value="relevance" selected>Relevance</option>
+        <option value="price-asc">Price: low to high</option>
+        <option value="price-desc" disabled>Price: high to low</option>
+      </select>
+    </label>
+    <label><input type="checkbox" id="instock" /> In stock only</label>
+    <label for="qty">Quantity</label><input id="qty" type="number" min="1" max="9" value="1" />
+
+    <section aria-labelledby="dairy-title">
+      <h2 id="dairy-title">Dairy &amp; Eggs</h2>
+      <article class="card"><span aria-hidden="true">🥛</span><span class="name">Oat Milk</span> <span>$4.99</span><button class="add" data-product="oat-milk">Add</button></article>
+      <article class="card"><span aria-hidden="true">🥚</span><span class="name">Large Eggs</span> <span>$3.99</span><button class="add" data-product="eggs" disabled>Add</button></article>
+    </section>
+    <button class="gone">Hidden button</button>
+    <p class="far"><a href="#footer-link" id="far-link">Store policies</a></p>
+  </main>
+
+  <dialog id="modal" aria-label="Confirm order">
+    <p>Place this order?</p>
+    <button id="place">Place order</button>
+    <button id="cancel">Cancel</button>
+  </dialog>
+
+  <script>
+    window.events = [];
+    const count = document.getElementById("count");
+    document.querySelectorAll(".add").forEach((b) =>
+      b.addEventListener("click", () => {
+        window.events.push(`add:${b.dataset.product}`);
+        count.textContent = String(Number(count.textContent) + 1);
+      }),
+    );
+    document.getElementById("search-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      window.events.push(`search:${document.getElementById("q").value}`);
+    });
+    document.getElementById("sort").addEventListener("change", (e) => window.events.push(`sort:${e.target.value}`));
+    document.getElementById("vegan").addEventListener("click", (e) => {
+      const on = e.target.getAttribute("aria-pressed") === "true";
+      e.target.setAttribute("aria-pressed", String(!on));
+    });
+  </script>
+</body>
+</html>

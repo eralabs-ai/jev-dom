@@ -1,0 +1,302 @@
+/* Night Owl in the dark, Light Owl in the light (the palette of jev-webmcp-extension). */
+:root {
+  --bg: #011627;
+  --surface: #0b2942;
+  --line: #1d3b53;
+  --text: #d6deeb;
+  --muted: #8ba3b8;
+  --accent: #82aaff;
+  --accent-ink: #011627;
+  --high: #addb67;
+  --mid: #ecc48d;
+  --low: #f78c6c;
+  --danger: #ef5350;
+  --radius: 10px;
+  --mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #fbfbfb;
+    --surface: #f0f0f0;
+    --line: #d9d9d9;
+    --text: #403f53;
+    --muted: #5f7e97;
+    --accent: #4876d6;
+    --accent-ink: #ffffff;
+    --high: #08916a;
+    --mid: #b07d00;
+    --low: #c5482f;
+    --danger: #de3d3b;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0 auto;
+  max-width: 520px;
+  min-height: 100vh;
+  padding: 0 14px 24px;
+  background: var(--bg);
+  color: var(--text);
+  font: 13px/1.5 var(--sans);
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  padding: 5px 12px;
+  cursor: pointer;
+}
+
+button.primary,
+button[type="submit"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 14px;
+}
+
+.brand svg {
+  color: var(--accent);
+}
+
+.times {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.site {
+  flex: 1;
+  margin: 0;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 12px;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.icon-button {
+  display: grid;
+  place-items: center;
+  padding: 5px;
+}
+
+.settings,
+.notice {
+  margin: 12px 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.settings label {
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.settings .switch {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 8px;
+  font-weight: 400;
+}
+
+.row {
+  display: flex;
+  gap: 6px;
+}
+
+.row input {
+  flex: 1;
+  min-width: 0;
+  padding: 5px 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+}
+
+.hint {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.notice p {
+  margin: 0 0 8px;
+}
+
+#command {
+  margin: 14px 0 10px;
+}
+
+#say {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  resize: vertical;
+  font-size: 14px;
+}
+
+#say:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.actions .hint {
+  flex: 1;
+  margin: 0;
+}
+
+.run {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.run h2 {
+  margin: 0 0 6px;
+  font-size: 13px;
+}
+
+.steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  display: grid;
+  grid-template-columns: 86px 1fr auto auto;
+  gap: 8px;
+  align-items: baseline;
+  padding: 3px 0;
+  border-top: 1px dashed var(--line);
+}
+
+.step .op {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--accent);
+}
+
+.step.done .op {
+  color: var(--high);
+}
+
+.step.none .op {
+  color: var(--muted);
+}
+
+.step .what {
+  overflow-wrap: anywhere;
+}
+
+.step .conf,
+.step .ms {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.conf.high {
+  color: var(--high);
+}
+
+.conf.mid {
+  color: var(--mid);
+}
+
+.conf.low {
+  color: var(--low);
+}
+
+.prompt {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 6px 0;
+  padding: 8px;
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.prompt span {
+  flex: 1;
+}
+
+.error {
+  color: var(--danger);
+  font-size: 12px;
+}
+
+.status {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.status.done {
+  color: var(--high);
+}
+
+.status.error {
+  color: var(--danger);
+}

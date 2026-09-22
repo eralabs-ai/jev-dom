@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Jev × DOM",
+  "version": "0.1.0",
+  "description": "Type what you want. Jev does it with the page's own buttons, links and fields — no WebMCP needed.",
+  "minimum_chrome_version": "121",
+  "icons": { "16": "icons/icon-16.png", "32": "icons/icon-32.png", "48": "icons/icon-48.png", "128": "icons/icon-128.png" },
+  "action": { "default_title": "Open Jev × DOM", "default_icon": { "16": "icons/icon-16.png", "32": "icons/icon-32.png" } },
+  "side_panel": { "default_path": "panel/panel.html" },
+  "background": { "service_worker": "background.js", "type": "module" },
+  "permissions": ["sidePanel", "scripting", "storage", "tabs"],
+  "host_permissions": ["https://api.typesafe.ai/*"],
+  "optional_host_permissions": ["*://*/*"]
+}

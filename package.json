@@ -1,0 +1,24 @@
+{
+  "name": "jev-dom",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Jev (TypeSafe System One) driving a page directly through its DOM — no WebMCP required.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test \"test/*.test.js\"",
+    "try": "node --env-file-if-exists=.env cli/try.js",
+    "eval": "node --env-file-if-exists=.env evals/run.js",
+    "build:extension": "node scripts/build-extension.js",
+    "e2e:extension": "node --env-file-if-exists=.env scripts/e2e-extension.js",
+    "compare": "node --env-file-if-exists=.env evals/four-arms.js"
+  },
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.128.0",
+    "jev-webmcp": "github:sdras/jev-webmcp-extension#1ec3afb6cebf116d811a3c8a073414edaf5cb67c",
+    "playwright": "^1.63.0"
+  }
+}

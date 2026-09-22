@@ -1,0 +1,35 @@
+{
+  "name": "Alo Yoga (a live store that ships WebMCP)",
+  "site": "https://www.aloyoga.com/",
+  "note": "A real commercial store, not a demo: heavy SPA, cookie banner, hover menus, and 11 live WebMCP tools. Nothing here is bought — no task proceeds to checkout.",
+  "tasks": [
+    {
+      "id": "womens-leggings",
+      "request": "show me women's leggings",
+      "agentPrompt": "Go to {url} and show me women's leggings. When done, report the URL you ended on and the first three product names shown. Do not add anything to the cart and never proceed to checkout.",
+      "expectUrl": "/collections/womens-leggings",
+      "expectText": "leggings"
+    },
+    {
+      "id": "shoes",
+      "request": "browse the shoes section",
+      "agentPrompt": "Go to {url} and browse the shoes section. When done, report the URL you ended on and the first three product names shown. Do not add anything to the cart and never proceed to checkout.",
+      "expectUrl": "/collections/shoes",
+      "expectText": "shoe|sneaker|slide"
+    },
+    {
+      "id": "open-cart",
+      "request": "open my cart",
+      "agentPrompt": "Go to {url} and open my cart. When done, report exactly what the cart contains. Never proceed to checkout.",
+      "expectUrl": "/cart|cart",
+      "expectText": "cart|empty|bag"
+    },
+    {
+      "id": "add-legging",
+      "request": "add a black legging in size small to my cart",
+      "agentPrompt": "Go to {url} and add a black legging in size small to the cart. When done, report the exact product name and size that went in. Never proceed to checkout.",
+      "expectUrl": "variant=|/cart",
+      "expectText": "legging"
+    }
+  ]
+}

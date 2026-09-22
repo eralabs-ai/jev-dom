@@ -1,0 +1,32 @@
+{
+  "name": "Basketful (WebMCP demo store)",
+  "site": "https://shopping-webmcp-demo.netlify.app/store/greenleaf",
+  "note": "The demo store from jev-webmcp-extension. Every action exists twice: as a WebMCP tool and as ordinary UI.",
+  "tasks": [
+    {
+      "id": "two-oat-milk",
+      "request": "throw in two cartons of oat milk",
+      "agentPrompt": "Go to {url} and add two cartons of Oat Milk to the cart. When done, report the cart's item count and subtotal exactly as the page shows them. Never proceed to checkout.",
+      "expectText": "9\\.98|2 items",
+      "expectStorage": {
+        "key": "basketful:v1",
+        "path": "carts.greenleaf.oat-milk",
+        "equals": 2
+      }
+    },
+    {
+      "id": "bakery-gluten-free",
+      "request": "show me gluten free products in the bakery aisle",
+      "agentPrompt": "At {url}, show only the gluten-free products in the Bakery aisle, then report the exact names of every product shown. Do not add anything to the cart and never proceed to checkout.",
+      "expectUrl": "dept=bakery.*diet=gluten-free|diet=gluten-free.*dept=bakery",
+      "expectText": "corn tortillas"
+    },
+    {
+      "id": "cheapest-store",
+      "request": "switch to the cheapest store",
+      "agentPrompt": "At {url}, switch to the cheapest of Basketful's stores, then report that store's name and its delivery fee exactly as shown. Do not add anything to the cart and never proceed to checkout.",
+      "expectUrl": "/store/penny",
+      "expectText": "penny pantry"
+    }
+  ]
+}
