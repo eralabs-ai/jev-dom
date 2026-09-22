@@ -4,13 +4,9 @@
 //
 //   node --env-file=.env cli/webmcp-try.js "throw in two cartons of oat milk" ...
 import { parseArgs } from "node:util";
-import { decode } from "jev-webmcp/src/core/decode.js";
-import { decide } from "jev-webmcp/src/core/policy.js";
-import { buildQuestions, buildState } from "jev-webmcp/src/core/questions.js";
-import { systemOne } from "jev-webmcp/src/jev.js";
-import { pageCallTool, pageListTools } from "jev-webmcp/src/platform/chrome.js";
 import { chromium } from "playwright";
 import { PRICE_PER_INPUT_TOKEN } from "../src/jev.js";
+import { chooseTool, pageCallTool, pageListTools } from "../src/webmcp.js";
 
 const { values: opts, positionals: requests } = parseArgs({
   allowPositionals: true,
@@ -35,20 +31,16 @@ try {
     }
 
     const started = performance.now();
-    const { questions, plan } = buildQuestions(tools, request);
-    const reply = await systemOne({ apiKey, model, state: buildState(request, { host: new URL(page.url()).host, title: await page.title() }), questions });
-    const call = decode(plan, reply.answers);
-    const verdict = decide(call);
+    const { call, verdict, confidence, inputTokens: tokens, ms: jevMs } = await chooseTool({ tools, request, host: new URL(page.url()).host, title: await page.title(), apiKey, model });
     let result = null;
-    if (call.name && verdict !== "none" && verdict !== "incomplete") {
+    if (call && verdict !== "none" && verdict !== "incomplete") {
       result = await page.evaluate(`(${pageCallTool})(${JSON.stringify(call.name)}, ${JSON.stringify(JSON.stringify(call.args))})`);
     }
     const totalMs = performance.now() - started;
 
-    const tokens = reply.usage?.input_tokens ?? 0;
     console.log(`\n› ${request}`);
     console.log(`  ${formatCall(call)}`);
-    console.log(`  ${Math.round(call.confidence * 100)}% → ${verdict} · ${(totalMs / 1000).toFixed(2)} s (jev ${Math.round(reply.ms)} ms) · 1 Jev call · ${(tokens / 1000).toFixed(1)}k tokens ≈ $${(tokens * PRICE_PER_INPUT_TOKEN).toFixed(5)}`);
+    console.log(`  ${Math.round(confidence * 100)}% → ${verdict} · ${(totalMs / 1000).toFixed(2)} s (jev ${Math.round(jevMs)} ms) · 1 Jev call · ${(tokens / 1000).toFixed(1)}k tokens ≈ $${(tokens * PRICE_PER_INPUT_TOKEN).toFixed(5)}`);
     if (result?.ok) {
       const text = JSON.parse(result.result)?.content?.[0]?.text ?? result.result;
       console.log(`  the panel shows: ${String(text).replace(/\s+/g, " ").slice(0, 150)}`);

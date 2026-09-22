@@ -1,24 +1,58 @@
 {
   "name": "jev-dom",
   "version": "0.1.0",
-  "private": true,
-  "description": "Jev (TypeSafe System One) driving a page directly through its DOM — no WebMCP required.",
+  "description": "Jev (TypeSafe System One) driving a page directly through its DOM \u2014 no WebMCP required.",
   "type": "module",
+  "license": "Apache-2.0",
+  "repository": "github:eralabs-ai/jev-dom",
   "engines": {
-    "node": ">=22"
+    "node": ">=20"
+  },
+  "files": [
+    "src/",
+    "types/",
+    "!types/__check.ts",
+    "README.md",
+    "LICENSE"
+  ],
+  "exports": {
+    "./agent": {
+      "types": "./types/agent.d.ts",
+      "default": "./src/agent.js"
+    },
+    "./jev": {
+      "types": "./types/jev.d.ts",
+      "default": "./src/jev.js"
+    },
+    "./webmcp": {
+      "types": "./types/webmcp.d.ts",
+      "default": "./src/webmcp.js"
+    },
+    "./core/*": {
+      "types": "./types/core/*.d.ts",
+      "default": "./src/core/*.js"
+    },
+    "./page/*": {
+      "types": "./types/page/*.d.ts",
+      "default": "./src/page/*.js"
+    },
+    "./package.json": "./package.json"
   },
   "scripts": {
     "test": "node --test \"test/*.test.js\"",
+    "typecheck": "tsc -p tsconfig.check.json",
     "try": "node --env-file-if-exists=.env cli/try.js",
     "eval": "node --env-file-if-exists=.env evals/run.js",
     "build:extension": "node scripts/build-extension.js",
     "e2e:extension": "node --env-file-if-exists=.env scripts/e2e-extension.js",
     "compare": "node --env-file-if-exists=.env evals/four-arms.js"
   },
-  "license": "Apache-2.0",
   "dependencies": {
+    "jev-webmcp": "github:sdras/jev-webmcp-extension#1ec3afb6cebf116d811a3c8a073414edaf5cb67c"
+  },
+  "devDependencies": {
     "@anthropic-ai/sdk": "^0.128.0",
-    "jev-webmcp": "github:sdras/jev-webmcp-extension#1ec3afb6cebf116d811a3c8a073414edaf5cb67c",
-    "playwright": "^1.63.0"
+    "playwright": "^1.63.0",
+    "typescript": "^5.9.0"
   }
 }

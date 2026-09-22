@@ -1,9 +1,5 @@
 # jev-dom
 
-> **Standalone experiment.** This folder is not part of the oramono build: it has its
-> own `package.json`, tests and tooling, and is excluded from nx, eslint and prettier.
-> Run everything from inside `docs/experiments/jev-dom`.
-
 **Jev driving a web page through its DOM — no WebMCP.**
 
 [jev-webmcp-extension](https://github.com/sdras/jev-webmcp-extension) turns a site's
@@ -21,6 +17,45 @@ buttons, links, fields and dropdowns become the action space. Only a Jev key is 
   DONE                                           99%  273 ms
   ✔ done · 1.38 s · 3 Jev calls · ≈ $0.0019
 ```
+
+## Install
+
+Not on npm. Install it from GitHub, pinned to a commit — this is a research package and its
+surface still moves:
+
+```bash
+npm i github:eralabs-ai/jev-dom#<commit-sha>
+```
+
+Node 20 or newer. `playwright` is a peer of your own choosing: this package never imports it,
+so you supply the browser and hand it a page.
+
+### Use from your own Playwright page
+
+```js
+import { runRequest } from "jev-dom/agent";
+import { createJev, PRICE_PER_INPUT_TOKEN } from "jev-dom/jev";
+import { playwrightPage } from "jev-dom/page/playwright";
+
+const driver = playwrightPage(page); // `page` is yours: any Playwright Page
+await driver.settle();
+
+const run = await runRequest({
+  page: driver,
+  ask: createJev({ apiKey: process.env.TYPESAFE_API_KEY }),
+  request: "throw in two cartons of oat milk",
+  maxSteps: 12,
+  confirm: async () => true, // asked before a shaky or consequential step
+  onStep: (step) => console.log(step.op, step.target?.name, step.confidence),
+});
+
+console.log(run.status, run.totalMs, run.inputTokens * PRICE_PER_INPUT_TOKEN);
+```
+
+Subpaths: `jev-dom/agent` (the loop), `jev-dom/jev` (the System One client), `jev-dom/webmcp`
+(`chooseTool`, the WebMCP arm as one call), `jev-dom/core/*` (action space, decode, policy,
+questions, spans) and `jev-dom/page/*` (the Playwright host, the in-page reader and executor).
+Hand-written TypeScript declarations ship with each one.
 
 ## Results
 
@@ -75,7 +110,7 @@ and a three-field form: type, select, submit), 0.4–1.2 s each.
 
 The comparison above swaps the decision engine but keeps the harness thin. The other
 question is how this compares to what people actually ship: a general LLM agent driving a
-browser. Three tasks, run on ora's own experiment runner (`claude-code` harness, Claude
+browser. Three tasks, run on an external agent-harness runner (`claude-code` harness, Claude
 Opus 5), with its `desktop` add-on (a real Chromium in the pod — the trajectories show
 screenshot → read-image → click loops) and with its `webmcp` add-on (the site's own tools
 re-served as MCP). Every run below produced the correct answer.
@@ -143,13 +178,14 @@ node --env-file=.env evals/four-arms.js --journey aloyoga
 node --env-file=.env evals/four-arms.js --journey aloyoga --only add-legging --repeats 3 --out runs/mine.json
 ```
 
-The two agent arms run on ora's experiment runner — a real harness in a pod, with kalanu's
-`desktop` feature (a Chromium it drives with navigate/click/type/screenshot) and optionally
-the `webmcp` feature (the site's own tools re-served as MCP). Point the script at it:
+The two agent arms need an external agent-harness runner — a real harness in a pod, with a
+`desktop` feature (a Chromium it drives with navigate/click/type/screenshot) and optionally a
+`webmcp` feature (the site's own tools re-served as MCP). `evals/ora-agent.js` drives **one
+specific such runner** (ora's experiments API) over HTTP; swap that file for your own runner's
+client and the other three arms are unaffected. Pointed at ora's, it takes:
 
 ```bash
-kubectl -n ora port-forward svc/auth-service 29433:80 &
-kubectl -n ora port-forward svc/experiments-service 29434:80 &
+export ORA_API_URL=... ORA_AUTH_URL=...      # e.g. port-forwarded from the cluster
 export ORA_EMAIL=... ORA_PASSWORD=...        # or ORA_TOKEN=...; ORA_HARNESS/ORA_MODEL to switch
 ```
 
@@ -287,7 +323,7 @@ extension/         the side panel (built into dist/ with the core)
 evals/
   run.js           WebMCP vs DOM vs LLM arms on Basketful's 17 sentences
   four-arms.js     one journey through all four interfaces -> the comparison table
-  ora-agent.js     the two agent arms, via ora's experiment runner
+  ora-agent.js     the two agent arms, via one specific external runner (ora's experiments API)
   journeys/        the task sets (basketful, aloyoga)
   sites.js         the same agent on sites that never heard of WebMCP
 ```

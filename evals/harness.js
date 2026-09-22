@@ -3,14 +3,10 @@
 //   webmcp     jev-webmcp-extension's pipeline, UNCHANGED: its questions,
 //              decode, policy and page bridge, then the predicted call executed
 //   dom        this project's agent: no WebMCP, only the page's own controls
-import { decode as decodeCall } from "jev-webmcp/src/core/decode.js";
-import { decide as decideCall } from "jev-webmcp/src/core/policy.js";
-import { buildQuestions, buildState } from "jev-webmcp/src/core/questions.js";
-import { systemOne } from "jev-webmcp/src/jev.js";
-import { pageCallTool, pageListTools } from "jev-webmcp/src/platform/chrome.js";
 import { chromium } from "playwright";
 import { runRequest } from "../src/agent.js";
 import { playwrightPage } from "../src/page/playwright.js";
+import { chooseTool, pageCallTool, pageListTools } from "../src/webmcp.js";
 import { acceptsCommitment, CLOCK, captureOutcome, SITE, STORAGE_KEY } from "./basketful.js";
 import { llmDom, llmWebmcp } from "./llm.js";
 
@@ -122,17 +118,15 @@ export async function runWebmcpArm(browsers, kase, seed, { apiKey, model }) {
     const title = await page.title();
 
     const began = performance.now();
-    const { questions, plan } = buildQuestions(tools, kase.said);
-    const reply = await systemOne({ apiKey, model, state: buildState(kase.said, { host, title }), questions });
-    const call = decodeCall(plan, reply.answers);
-    let verdict = decideCall(call);
+    const { call, verdict: predicted, confidence, inputTokens, ms: jevMs } = await chooseTool({ tools, request: kase.said, host, title, apiKey, model });
+    let verdict = predicted;
     let result = null;
     let toolMs = 0;
     // The panel asks for Enter (twice for a consequential tool). The simulated
     // user presses it, except for a commitment their request did not ask for.
-    const hints = call.tool?.annotations ?? {};
+    const hints = call?.tool?.annotations ?? {};
     if ((hints.consequentialHint || hints.destructiveHint) && !acceptsCommitment(kase)) verdict = "declined";
-    if (call.name && !["none", "incomplete", "declined"].includes(verdict)) {
+    if (call && !["none", "incomplete", "declined"].includes(verdict)) {
       const t = performance.now();
       result = await callTool(page, call.name, call.args);
       toolMs = Math.round(performance.now() - t);
@@ -141,11 +135,11 @@ export async function runWebmcpArm(browsers, kase, seed, { apiKey, model }) {
       start,
       outcome: await capture(page),
       totalMs: Math.round(performance.now() - began),
-      jevMs: Math.round(reply.ms),
+      jevMs: Math.round(jevMs),
       toolMs,
       jevCalls: 1,
-      inputTokens: reply.usage?.input_tokens ?? 0,
-      call: { name: call.name, args: call.args, confidence: call.confidence, missing: call.missing },
+      inputTokens,
+      call: { name: call?.name ?? null, args: call?.args ?? {}, confidence, missing: call?.missing ?? [] },
       verdict,
       evidence: { result: result?.ok ? result.result : (result?.error ?? null), acted: result ? `called ${call.name}` : null },
     };

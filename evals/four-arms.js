@@ -18,14 +18,10 @@
 import { readFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { chromium } from "playwright";
-import { decode as decodeCall } from "jev-webmcp/src/core/decode.js";
-import { decide as decideCall } from "jev-webmcp/src/core/policy.js";
-import { buildQuestions, buildState } from "jev-webmcp/src/core/questions.js";
-import { systemOne } from "jev-webmcp/src/jev.js";
-import { pageCallTool, pageListTools } from "jev-webmcp/src/platform/chrome.js";
 import { runRequest } from "../src/agent.js";
 import { createJev, PRICE_PER_INPUT_TOKEN } from "../src/jev.js";
 import { playwrightPage } from "../src/page/playwright.js";
+import { chooseTool, pageCallTool, pageListTools } from "../src/webmcp.js";
 import { agentRun, ARMS as AGENT_ARMS, oraSession } from "./ora-agent.js";
 
 const { values: opts } = parseArgs({
@@ -120,21 +116,17 @@ async function runJevWebmcp(browser, task) {
     if (!tools.length) throw new Error("the site registered no WebMCP tools (is this Chromium started with --enable-features=WebMCPTesting?)");
 
     const began = performance.now();
-    const { questions, plan } = buildQuestions(tools, task.request);
-    const reply = await systemOne({ apiKey, model, state: buildState(task.request, { host: new URL(page.url()).host, title: await page.title() }), questions });
-    const call = decodeCall(plan, reply.answers);
-    const verdict = decideCall(call);
+    const { call, verdict, inputTokens: tokens } = await chooseTool({ tools, request: task.request, host: new URL(page.url()).host, title: await page.title(), apiKey, model });
     let answer = null;
-    if (call.name && !["none", "incomplete"].includes(verdict)) {
+    if (call && !["none", "incomplete"].includes(verdict)) {
       const result = await page.evaluate(`(${pageCallTool})(${JSON.stringify(call.name)}, ${JSON.stringify(JSON.stringify(call.args))})`);
       answer = result.ok ? String(result.result) : `error: ${result.error}`;
       await playwrightPage(page).settle();
     }
-    const tokens = reply.usage?.input_tokens ?? 0;
     const storage = await readStorage(page, task.expectStorage);
     // The panel shows the tool's own text, so an answer task is satisfied by either.
     const failure = judge(task, { url: page.url(), storage }) && judge(task, { answer });
-    return { ms: performance.now() - began, cost: tokens * PRICE_PER_INPUT_TOKEN, tokens, steps: 1, trail: `${call.name ?? "(no tool)"} [${verdict}]`, failure };
+    return { ms: performance.now() - began, cost: tokens * PRICE_PER_INPUT_TOKEN, tokens, steps: 1, trail: `${call?.name ?? "(no tool)"} [${verdict}]`, failure };
   } finally {
     await context.close();
   }
