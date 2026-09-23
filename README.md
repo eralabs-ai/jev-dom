@@ -24,7 +24,7 @@ Not on npm. Install it from GitHub, pinned to a commit — this is a research pa
 surface still moves:
 
 ```bash
-npm i github:eralabs-ai/jev-dom#<commit-sha>
+npm i github:eralabs-ai/jev-dom#e211e2a
 ```
 
 Node 22 or newer — `jev-webmcp`, the one runtime dependency, sets that floor. `playwright` is a
