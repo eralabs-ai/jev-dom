@@ -9,8 +9,8 @@
 // A required argument the request did not state leaves the call `incomplete`.
 // With a `writeText` helper (see agent.js), a free-text or numeric argument
 // that `fillable` lets through is written by the helper and checked against
-// the schema in code before it goes into the call; anything the schema rejects
-// stays missing, never clamped.
+// the schema's bounds in code before it goes into the call; anything those
+// reject stays missing, never clamped. A page-written `pattern` is never run.
 import { decode } from "jev-webmcp/src/core/decode.js";
 import { decide } from "jev-webmcp/src/core/policy.js";
 import { buildQuestions, buildState } from "jev-webmcp/src/core/questions.js";
@@ -22,8 +22,6 @@ export { pageCallTool, pageListTools } from "jev-webmcp/src/platform/chrome.js";
 
 /** Longest generated value a schema may be asked to accept. */
 const MAX_TEXT = 120;
-/** A schema `pattern` is third-party input: only a short one with no quantified group is run. */
-const safePattern = (pattern) => typeof pattern === "string" && pattern.length <= 200 && !/\)[*+?{]/.test(pattern);
 
 function setPath(target, path, value) {
   let node = target;
@@ -52,16 +50,12 @@ function accept(param, text) {
   if (value.length > MAX_TEXT) return undefined;
   if (Number.isFinite(schema.maxLength) && value.length > schema.maxLength) return undefined;
   if (Number.isFinite(schema.minLength) && value.length < schema.minLength) return undefined;
-  if (schema.pattern !== undefined) {
-    if (!safePattern(schema.pattern)) return undefined;
-    let re;
-    try {
-      re = new RegExp(schema.pattern, "u");
-    } catch {
-      return undefined; // an invalid schema pattern: nothing can be shown to match it
-    }
-    if (!re.test(value)) return undefined;
-  }
+  // A schema `pattern` is deliberately NOT run: it is a regex the page wrote,
+  // and `new RegExp(pattern).test(value)` on the caller's event loop is a
+  // ReDoS the page controls (`^.*.*.*.*.*.*.*.*Z$` at 23 chars takes seconds,
+  // and neither an abort signal nor a route timeout interrupts a synchronous
+  // regex). A value the page's own handler rejects is the page's answer to
+  // give, and the caller sees it as a refused call rather than a stalled worker.
   return value;
 }
 

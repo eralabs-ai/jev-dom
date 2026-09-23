@@ -42,7 +42,8 @@ export function fillable(field) {
   if (IDENTITY_FORMATS.has(String(field.format ?? "").toLowerCase())) return identity;
   const tokens = String(field.autocomplete ?? "").trim().toLowerCase().split(/\s+/).filter(Boolean);
   if (tokens.some((t) => t !== "off" && t !== "on")) return identity;
-  if (field.pattern && DIGIT_MASK.test(String(field.pattern))) return identity;
+  // Our own regex over the page's pattern STRING, never the page's regex over anything: bounded so a long pattern costs nothing.
+  if (field.pattern && DIGIT_MASK.test(String(field.pattern).slice(0, 200))) return identity;
   const own = [field.name, field.label, field.path].map(words).join(" ");
   if (IDENTITY_WORDS.test(`${own} ${words(field.description)}`)) return identity;
 

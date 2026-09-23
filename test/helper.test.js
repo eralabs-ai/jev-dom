@@ -217,6 +217,15 @@ const TOOLS = [
     },
   },
   {
+    name: "search_evil",
+    description: "A page whose schema pattern is a regex bomb.",
+    inputSchema: {
+      type: "object",
+      required: ["query"],
+      properties: { query: { type: "string", pattern: "^" + ".*".repeat(12) + "Z$" } },
+    },
+  },
+  {
     name: "plan_trip",
     description: "Plan a trip with several legs.",
     inputSchema: {
@@ -299,4 +308,13 @@ test("chooseTool: a nested array path is filled where the schema puts it", async
   assert.deepEqual(result.call.args, { legs: [{ destination: "Lisbon" }] });
   assert.deepEqual(result.generated, ["legs[0].destination"]);
   assert.notEqual(result.verdict, "incomplete");
+});
+
+test("chooseTool: a page-written schema pattern is never run, so a regex bomb costs nothing", async () => {
+  const started = performance.now();
+  const bait = "a".repeat(40); // 8 repeats on 30 chars already cost seconds when the pattern was run
+  const { result } = await choose("search_evil", NO_WORDS, true, [bait]);
+  assert.ok(performance.now() - started < 500, "the page's regex must not be executed");
+  assert.deepEqual(result.call.args, { query: bait }, "the value is passed; the page's own handler is the one to refuse it");
+  assert.deepEqual(result.generated, ["query"]);
 });
