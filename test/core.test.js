@@ -162,6 +162,24 @@ test("the loop gives up when two steps in a row change nothing", async () => {
   assert.equal(page.acted.length, 2);
 });
 
+test("a reply with no usage data still produces a numeric inputTokens, not NaN", async () => {
+  // `createJev`'s ask normalises a missing/empty API `usage` to `{ input_tokens: 0 }`
+  // (src/jev.js) — this is that contract, fed straight to runRequest via a scripted ask.
+  const page = fakePage([shop()]);
+  const result = await runRequest({
+    page,
+    request: "vegan",
+    ask: async ({ questions }) => ({
+      answers: answersFor(questions, { operation: ["DONE", 0.9] }),
+      usage: { input_tokens: 0 },
+      model: "scripted",
+      ms: 1,
+    }),
+  });
+  assert.equal(result.steps[0].inputTokens, 0);
+  assert.equal(Number.isNaN(result.steps[0].inputTokens), false);
+});
+
 test("a declined confirmation stops before acting", async () => {
   const page = fakePage([shop()]);
   const result = await runRequest({

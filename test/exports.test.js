@@ -56,3 +56,9 @@ test("the declared node floor is no lower than any runtime dependency's", () => 
     assert.ok(ours >= theirs, `engines.node is >=${ours}, but ${name} needs >=${theirs}`);
   }
 });
+
+test("the lockfile's own engine floor matches the manifest", () => {
+  // The root package's engines.node in package-lock.json is inert (npm reads the
+  // floor from package.json), but a mismatch here means the lock is stale.
+  assert.equal(lockfile.packages[""].engines.node, manifest.engines.node);
+});

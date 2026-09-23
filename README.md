@@ -31,6 +31,10 @@ Node 22 or newer — `jev-webmcp`, the one runtime dependency, sets that floor. 
 peer of your own choosing: this package never imports it, so you supply the browser and hand it a
 page.
 
+That first `npm install` of a GitHub dependency needs `git` on `PATH` (npm shells out to
+`git ls-remote`); once a lockfile is committed, `npm ci` does not — it fetches both packages from
+GitHub's codeload tarball instead.
+
 ### Use from your own Playwright page
 
 ```js

@@ -51,7 +51,7 @@ export function createJev({ apiKey, model = "jev-latest", api = API, timeoutMs =
       }
       if (!response.ok) throw new JevError(await explain(response), response.status);
       const body = await response.json();
-      return { answers: body.answers, usage: body.usage ?? {}, model: body.model, ms: performance.now() - started };
+      return { answers: body.answers, usage: { input_tokens: body.usage?.input_tokens ?? 0 }, model: body.model, ms: performance.now() - started };
     }
   };
 }
