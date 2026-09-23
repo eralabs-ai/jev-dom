@@ -254,8 +254,8 @@ brings that second model back as a second tier: it is asked only when the reques
 the chosen field, and only for a field `core/identity`'s `fillable` lets through - a search term, a
 place, a date, a quantity. Identity, contact, address and payment fields (by `type`, `autocomplete`,
 schema `format`, or label) never reach it and stay `incomplete`. A generated value is marked
-`textSource: "generated"` on the step, checked against the schema in code before it is used
-(rejected, never clamped), and its time and tokens are reported apart from Jev's (`helperMs`,
+`textSource: "generated"` on the step, checked against the schema's bounds in code before it is used
+(rejected, never clamped; a page-written `pattern` is never run), and its time and tokens are reported apart from Jev's (`helperMs`,
 `helperTokens`). Submitting generated text anywhere but a search box asks first. This package still
 takes no LLM dependency: the helper is yours.
 
