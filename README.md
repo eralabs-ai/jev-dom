@@ -251,7 +251,7 @@ for typing). When a request doesn't contain the text a field needs, the step sto
 
 Optionally, a caller-owned `writeText` helper (`runRequest({ writeText })`, `chooseTool({ writeText })`)
 brings that second model back as a second tier: it is asked only when the request gave no words for
-the chosen field, and only for a field `core/identity`'s `fillable` lets through - a search term, a
+the chosen field, and only for a field `core/identity`'s `fillable` lets through - a search term, a link, a
 place, a date, a quantity. Identity, contact, address and payment fields (by `type`, `autocomplete`,
 schema `format`, or label) never reach it and stay `incomplete`. A generated value is marked
 `textSource: "generated"` on the step, checked against the schema's bounds in code before it is used

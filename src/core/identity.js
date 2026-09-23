@@ -3,6 +3,10 @@
 // value (a search term, a city, a quantity) for a field this gate lets
 // through. It never writes identity: who the user is, how to reach them, what
 // they pay with. Those fields stay `incomplete`, exactly as without a helper.
+// A link is a task value, not identity: a QR generator's target, a site to
+// preview or shorten, is something the request can name and the helper can
+// write, and a caller who wants links kept out of a field has the deny
+// signals (a name, a description) to say so.
 //
 // Deny is judged first and on every signal there is (type, autocomplete,
 // format, pattern, name, path, description); allow is judged on the field's
@@ -11,15 +15,17 @@
 // asked; a prompt that repeats the rule is a second layer, never the first.
 
 const IDENTITY_TYPES = new Set(["password", "email", "tel"]);
-const IDENTITY_FORMATS = new Set(["email", "uri", "url", "tel", "phone", "password", "hostname", "ipv4", "ipv6", "uuid"]);
+const IDENTITY_FORMATS = new Set(["email", "tel", "phone", "password", "ipv4", "ipv6", "uuid"]);
 
 // Word-bounded: "term" must not match "terms of service" and "to" must not match "tomato".
 const IDENTITY_WORDS =
   /\b(e[ -]?mail|password|passcode|pin|otp|verification code|phone|tel|telephone|mobile|(?:first|last|full|user)[ -]?name|username|login|sign ?in|address|street|shipping|billing|zip|postal|card|cvv|cvc|expiry|expiration|iban|account number|ssn|tax id|date of birth|dob|company)\b/i;
 
 const TASK_ROLES = new Set(["searchbox", "spinbutton"]);
+// A schema that declares the value a link says what it is for as plainly as a label would.
+const TASK_FORMATS = new Set(["uri", "url", "hostname"]);
 const TASK_WORDS =
-  /\b(search|find|filter|query|keywords?|q|term|city|destination|origin|from|to|where|date|when|quantity|qty|amount|count|product|item|topic|subject|size|colou?r)\b/i;
+  /\b(search|find|filter|query|keywords?|q|term|city|destination|origin|from|to|where|date|when|quantity|qty|amount|count|product|item|topic|subject|size|colou?r|url|uri|link|href|web ?site|site|domain|hostname)\b/i;
 
 // A pattern that demands a long run of digits is a card or phone mask.
 const DIGIT_MASK = /(?:\\d|\[0-9\])\{(?:[7-9]|1\d|2\d)(?:,\d*)?\}|(?:(?:\\d|\[0-9\])[ -]?){7,}/;
@@ -48,6 +54,7 @@ export function fillable(field) {
   if (IDENTITY_WORDS.test(`${own} ${words(field.description)}`)) return identity;
 
   const numeric = field.numeric || field.kind === "number" || field.type === "number" || field.type === "range";
-  if (numeric || TASK_ROLES.has(field.role) || TASK_WORDS.test(own)) return { ok: true };
+  const link = TASK_FORMATS.has(String(field.format ?? "").toLowerCase()) || field.type === "url";
+  if (numeric || link || TASK_ROLES.has(field.role) || TASK_WORDS.test(own)) return { ok: true };
   return { ok: false, reason: "not-task-field" };
 }

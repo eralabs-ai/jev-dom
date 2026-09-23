@@ -16,6 +16,9 @@ test("the gate denies identity, allows task values, and abstains on the rest", (
   assert.deepEqual(fillable({ name: "q", role: "textbox" }), { ok: true });
   assert.deepEqual(fillable({ name: "query", kind: "span", description: "What to look for" }), { ok: true });
   assert.deepEqual(fillable({ name: "limit", kind: "number" }), { ok: true });
+  assert.deepEqual(fillable({ name: "URL", role: "textbox", type: "url" }), { ok: true }, "a link is a task value");
+  assert.deepEqual(fillable({ name: "Website", role: "textbox" }), { ok: true });
+  assert.deepEqual(fillable({ name: "target", kind: "span", format: "uri" }), { ok: true });
 
   assert.deepEqual(fillable({ name: "Search", role: "textbox", type: "email" }), { ok: false, reason: "identity" });
   assert.deepEqual(fillable({ name: "Search", role: "textbox", autocomplete: "given-name" }), { ok: false, reason: "identity" });
