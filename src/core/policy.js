@@ -13,7 +13,7 @@ export const looksConsequential = (target) => COMMITS.test(target?.name ?? "");
  * @returns {"act" | "unsure" | "confirm" | "incomplete" | "done" | "none"}
  *   act         confident: run it
  *   unsure      below the confidence threshold: show it, let the user decide
- *   confirm     reads like a commitment (order, payment, delete, send): always ask
+ *   confirm     reads like a commitment (order, payment, delete, send), or submits generated text outside a search box: always ask
  *   incomplete  a field needs text the request does not contain
  *   done        the request is carried out
  *   none        nothing on the page fits, or the request is conversation
@@ -23,5 +23,8 @@ export function decide(decision, { thresholds = THRESHOLDS } = {}) {
   if (decision.op === "DONE") return "done";
   if ((decision.op === "TYPE" || decision.op === "TYPE_SUBMIT") && decision.text == null) return "incomplete";
   if (decision.op === "CLICK" && looksConsequential(decision.target)) return "confirm";
+  // Submitting words the user never said is a publish unless the field is a
+  // search box, where Enter only narrows the page.
+  if (decision.op === "TYPE_SUBMIT" && decision.textSource === "generated" && decision.target?.role !== "searchbox") return "confirm";
   return decision.confidence >= thresholds.act ? "act" : "unsure";
 }

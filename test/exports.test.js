@@ -17,6 +17,7 @@ const SURFACE = {
   "jev-dom/webmcp": ["chooseTool", "pageListTools", "pageCallTool"],
   "jev-dom/core/actions": ["OPERATIONS", "TARGETED", "describe", "actionSpace"],
   "jev-dom/core/decode": ["InvalidAnswer", "decode"],
+  "jev-dom/core/identity": ["fillable"],
   "jev-dom/core/policy": ["THRESHOLDS", "looksConsequential", "decide"],
   "jev-dom/core/questions": ["NOT_STATED", "MAX_OPTIONS", "RULES", "TARGET_QID", "buildStep"],
   "jev-dom/core/spans": ["tokenize", "spans", "numbers"],

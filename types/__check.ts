@@ -2,11 +2,12 @@
 // `npm run typecheck` fails if an entry point, a name or a shape goes missing.
 // Nothing here runs.
 import { EARLY, fingerprint, runRequest, STABLE, STOPS } from "jev-dom/agent";
-import type { RunResult, StepRecord } from "jev-dom/agent";
+import type { RunResult, StepRecord, TextWriter } from "jev-dom/agent";
 import { checkKey, createJev, JevError, PRICE_PER_INPUT_TOKEN } from "jev-dom/jev";
 import { actionSpace, describe, OPERATIONS, TARGETED } from "jev-dom/core/actions";
 import { decode, InvalidAnswer } from "jev-dom/core/decode";
 import type { Decision } from "jev-dom/core/decode";
+import { fillable } from "jev-dom/core/identity";
 import { decide, looksConsequential, THRESHOLDS } from "jev-dom/core/policy";
 import { buildStep, MAX_OPTIONS, NOT_STATED, RULES, TARGET_QID } from "jev-dom/core/questions";
 import { numbers, spans, tokenize } from "jev-dom/core/spans";
@@ -19,6 +20,11 @@ import type { Snapshot } from "jev-dom/page/snapshot";
 declare const someSnapshot: Snapshot;
 /** Stands in for a Playwright `Page`, which this package does not depend on. */
 declare const somePage: { url(): string; title(): Promise<string> };
+
+const helper: TextWriter = async ({ request, field, page, history }, { signal }) => {
+  void [request, field.name, field.kind, page.url, history.length, signal?.aborted];
+  return fillable(field).ok ? { text: "running shoes", ms: 400, inputTokens: 300, outputTokens: 8, model: "small" } : { text: null };
+};
 
 async function driveThePage(apiKey: string, request: string): Promise<RunResult> {
   const driver = playwrightPage(somePage);
@@ -36,9 +42,10 @@ async function driveThePage(apiKey: string, request: string): Promise<RunResult>
     thresholds: THRESHOLDS,
     confirm: async (decision: Decision, why: "confirm" | "unsure") => why === "unsure" && decision.confidence > 0.3,
     onStep: (record) => void steps.push(record),
+    writeText: helper,
   });
   const spent: number = run.inputTokens * PRICE_PER_INPUT_TOKEN;
-  void spent;
+  void [spent, run.helperMs, run.helperTokens.input, run.steps[0]?.textSource, run.steps[0]?.helperMs];
   void run.steps[0]?.target?.name;
   void STOPS.done;
   void STABLE.budgetMs;
@@ -49,17 +56,18 @@ async function driveThePage(apiKey: string, request: string): Promise<RunResult>
 
 async function chooseAWebmcpTool(apiKey: string, request: string) {
   const { tools } = await pageListTools();
-  const { call, verdict, confidence, inputTokens, ms, model, plan } = await chooseTool({
+  const { call, verdict, confidence, inputTokens, ms, model, plan, helperMs, helperTokens, generated } = await chooseTool({
     tools,
     request,
     host: new URL(somePage.url()).host,
     title: await somePage.title(),
     apiKey,
+    writeText: helper,
   });
-  void [verdict, confidence, inputTokens, ms, model, plan];
+  void [verdict, confidence, inputTokens, ms, model, plan, helperMs, helperTokens.output, generated.length];
   if (!call) return null;
   void call.tool.annotations?.consequentialHint;
-  void call.missing.length;
+  void [call.missing.length, call.generated?.length];
   return pageCallTool(call.name, JSON.stringify(call.args));
 }
 

@@ -1,4 +1,7 @@
 /** The WebMCP half: jev-webmcp-extension's pipeline as one function, its internals unexposed. */
+import type { TextWriter } from "./common.js";
+
+export type { TextField, TextRequest, TextWriter, TextWritten } from "./common.js";
 
 export interface ToolAnnotations {
   readOnlyHint?: boolean;
@@ -32,8 +35,10 @@ export interface ToolCall {
   args: Record<string, unknown>;
   /** Per-argument decode detail: label, path, value and probability. */
   details: unknown[];
-  /** Labels of required arguments the request did not state. */
+  /** Labels of required arguments the request did not state and the helper did not fill. */
   missing: string[];
+  /** Labels of arguments the text helper wrote. Absent when no helper ran. */
+  generated?: string[];
   routes: Array<{ value: string | null; probability: number }>;
   routeProbability?: number;
   /** The least certain judgement behind the call. */
@@ -53,6 +58,11 @@ export interface ChooseToolResult {
   model: string;
   /** The decode plan behind this prediction, for inspection. */
   plan: unknown;
+  /** The text helper's own time and tokens, apart from Jev's. Zero when it was not asked. */
+  helperMs: number;
+  helperTokens: { input: number; output: number };
+  /** Labels of the arguments the helper wrote. */
+  generated: string[];
 }
 
 export interface ChooseToolOptions {
@@ -66,6 +76,8 @@ export interface ChooseToolOptions {
   apiKey: string;
   model?: string;
   signal?: AbortSignal;
+  /** Writes a required free-text or numeric argument the request did not state, when `fillable` allows the field. */
+  writeText?: TextWriter | null;
 }
 
 /**

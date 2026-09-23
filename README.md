@@ -249,6 +249,16 @@ Choice over what the user actually said. That removes jev-ultrafast's second mod
 for typing). When a request doesn't contain the text a field needs, the step stops as
 `incomplete` instead of guessing.
 
+Optionally, a caller-owned `writeText` helper (`runRequest({ writeText })`, `chooseTool({ writeText })`)
+brings that second model back as a second tier: it is asked only when the request gave no words for
+the chosen field, and only for a field `core/identity`'s `fillable` lets through - a search term, a
+place, a date, a quantity. Identity, contact, address and payment fields (by `type`, `autocomplete`,
+schema `format`, or label) never reach it and stay `incomplete`. A generated value is marked
+`textSource: "generated"` on the step, checked against the schema in code before it is used
+(rejected, never clamped), and its time and tokens are reported apart from Jev's (`helperMs`,
+`helperTokens`). Submitting generated text anywhere but a search box asks first. This package still
+takes no LLM dependency: the helper is yours.
+
 The model only ever picks an index the code created for a real DOM node: never a selector, a
 coordinate or a script. Steps below 50% confidence, and any click that reads like a commitment
 (order, pay, delete, send), ask the user first.
@@ -316,6 +326,7 @@ src/core/          pure JavaScript, no browser: shared by the CLI, the evals and
   questions.js     one step -> one request (operation, target and text heads)
   decode.js        answers -> a validated decision
   policy.js        act / unsure / confirm / incomplete / done / none
+  identity.js      the field gate for generated text: identity is denied, task values allowed
   spans.js         vendored from jev-webmcp-extension
 src/page/
   snapshot.js      in-page DOM reader (adapted from jev-ultrafast)
