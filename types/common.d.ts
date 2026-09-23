@@ -67,8 +67,9 @@ export interface Decision {
   target?: ActionTarget;
   targetProbability?: number;
   targetAlternatives?: Alternative[];
-  /** The words to type, taken from the user's own request; null when they did not state them. */
+  /** The words to type: from the user's own request, or from the text helper; null when neither gave them. */
   text?: string | null;
+  textSource?: TextSource;
   textAlternatives?: Alternative[];
   textProbability?: number;
   /** The least sure part of the step: one wrong part spoils it. */
@@ -122,3 +123,48 @@ export interface HistoryEntry {
   text?: string | null;
   changed?: boolean;
 }
+
+/** The field the text helper is asked about. `kind: "number"` wants digits back. */
+export interface TextField {
+  name: string;
+  kind: "text" | "number";
+  /** DOM only. */
+  role?: string;
+  type?: string | null;
+  value?: string | null;
+  autocomplete?: string | null;
+  /** The card, row or form the control sits in. DOM only. */
+  context?: string | null;
+  /** WebMCP only: the parameter's JSON Schema and the tool it belongs to. */
+  schema?: unknown;
+  description?: string | null;
+  tool?: { name: string; description: string };
+}
+
+export interface TextRequest {
+  /** The user's own words. */
+  request: string;
+  field: TextField;
+  page: { url: string | null; title: string | null };
+  /** The last few steps of this run, as the model reads them. Empty for a WebMCP call. */
+  history: unknown[];
+}
+
+/** What the helper answers. `text` is the value to type (digits for a number field), or null to decline. */
+export interface TextWritten {
+  text: string | null;
+  ms?: number;
+  inputTokens?: number;
+  outputTokens?: number;
+  model?: string;
+}
+
+/**
+ * A caller-owned text helper (a small LLM, typically). Called only for a field
+ * `fillable` lets through, only when the request gave no words for it. It must
+ * not throw: return `{ text: null }` on any failure.
+ */
+export type TextWriter = (input: TextRequest, options: { signal?: AbortSignal }) => Promise<TextWritten | null>;
+
+/** Where a step's text came from: the user's words, the helper, or nowhere. */
+export type TextSource = "request" | "generated" | null;

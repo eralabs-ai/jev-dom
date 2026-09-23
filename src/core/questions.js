@@ -29,7 +29,8 @@ const HEADS = {
 };
 export const TARGET_QID = { CLICK: "click_target", TYPE: "type_target", TYPE_SUBMIT: "type_target", SELECT: "select_target" };
 
-function recent(history) {
+/** The last few steps, as the model reads them (and as the text helper is told them). */
+export function recent(history) {
   return history.slice(-8).map((h) => ({
     step: h.step,
     did: `${h.op} ${h.target ? `${h.target.role} "${h.target.name}"${h.target.context ? ` (in ${h.target.context})` : ""}` : ""}`.trim(),

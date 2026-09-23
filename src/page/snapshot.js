@@ -163,6 +163,9 @@ export function snapshotPage({ maxElements = 240, maxText = 2500 } = {}) {
     const tag = e.tagName.toLowerCase();
     const el = { id: identity(e), role: r, name: clip(own || r, 90), tag, order: order++ };
     if (e.type && tag === "input") el.type = e.type;
+    // The one identity signal a site cannot mislabel by accident: it drives the browser's own autofill.
+    const autocomplete = squash(e.getAttribute("autocomplete") || "").toLowerCase();
+    if (autocomplete) el.autocomplete = autocomplete;
     el.inView = rect.bottom > 0 && rect.right > 0 && rect.top < H && rect.left < W;
     const where = context(e, own);
     if (where) el.context = where;

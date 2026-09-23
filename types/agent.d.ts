@@ -1,7 +1,7 @@
 import type { ActionSpace } from "./core/actions.js";
-import type { BuiltStep, Decision, JevReply, Operation, PageHost, Snapshot, Verdict, Ask } from "./common.js";
+import type { BuiltStep, Decision, JevReply, Operation, PageHost, Snapshot, TextSource, TextWriter, Verdict, Ask } from "./common.js";
 
-export type { Ask, Decision, PageHost, Snapshot, Verdict } from "./common.js";
+export type { Ask, Decision, PageHost, Snapshot, TextField, TextRequest, TextSource, TextWriter, TextWritten, Verdict } from "./common.js";
 
 /** Verdicts that end the loop by themselves, mapped to the status they end it with. */
 export declare const STOPS: { readonly done: "done"; readonly none: "none"; readonly incomplete: "incomplete" };
@@ -34,6 +34,10 @@ export interface StepRecord {
   op: Operation;
   target: StepTarget | null;
   text: string | null;
+  /** Where `text` came from; null when the step typed nothing or had nothing to type. */
+  textSource: TextSource;
+  /** Milliseconds the text helper took on this step, or null when it was not asked. */
+  helperMs: number | null;
   /** The least sure part of the decision. */
   confidence: number;
   verdict: Verdict;
@@ -67,7 +71,11 @@ export interface RunResult {
   effectMs: number | null;
   jevCalls: number;
   jevMs: number;
+  /** Jev's input tokens. The helper's are counted apart, in `helperTokens`. */
   inputTokens: number;
+  /** Total time the text helper took, across steps. */
+  helperMs: number;
+  helperTokens: { input: number; output: number };
 }
 
 export interface RunRequestOptions {
@@ -83,6 +91,11 @@ export interface RunRequestOptions {
   /** Asked before a shaky or consequential step; returning false ends the run as "declined". */
   confirm?: (decision: Decision, verdict: "confirm" | "unsure") => Promise<boolean> | boolean;
   onStep?: (record: StepRecord, extra: { decision: Decision; built: BuiltStep; reply: JevReply }) => void | Promise<void>;
+  /**
+   * Writes text for a field the request gave no words for, when `fillable`
+   * lets the field through. Without it such a step ends the run `incomplete`.
+   */
+  writeText?: TextWriter | null;
 }
 
 /** The loop for one request: observe -> one Jev request -> decide -> act, until it is carried out. */

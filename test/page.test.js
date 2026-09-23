@@ -36,6 +36,8 @@ test("reads names, values, state and context; skips secrets, hidden and disabled
   assert.equal(byName(snap, "In stock only").state.checked, "false");
   assert.match(byName(snap, "Add").context, /Dairy & Eggs › Oat Milk \$4\.99/);
   assert.equal(byName(snap, "Quantity").value, "1");
+  assert.equal(byName(snap, "Your name").autocomplete, "name", "autocomplete is read: it is the identity signal a site cannot mislabel by accident");
+  assert.equal(byName(snap, "Search the shop").autocomplete, undefined);
   assert.deepEqual(
     byName(snap, "Sort by").options.map((o) => o.value),
     ["relevance", "price-asc"],
